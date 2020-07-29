@@ -1,0 +1,46 @@
+gpu_id: 1
+multi_gpus: True
+num_workers: 4
+seed: 666
+exp_name: 'expClevr10%LOGNet'
+
+train:
+  lr: 0.0001
+  batch_size: 64
+  restore: False
+  max_epochs: 30
+  word_dim: 300
+  vision_dim: 2048
+  module_dim: 512
+  glove: False
+  train_num: 70000
+  net_length: 12
+  control_input_unshared: True
+  weight_init: "xavier_uniform"
+
+val:
+  flag: True
+  is_vis: False
+  write_preds: True
+  batch_size: 64
+  val_num: 0
+
+test:
+  test_num: 0
+  write_preds: True
+
+dataset:
+  name: 'clevr'
+  annotation_file: '/AvaStore/DataSets/visual_qa/datasets/clevr/CLEVR_v1/data/CLEVR_{}_questions.json'
+  data_dir: 'data/'
+  train_feature: 'clevr_train_feature.h5'
+  val_feature: 'clevr_val_feature.h5'
+  test_feature: 'clevr_test_feature.h5'
+  train_question: 'clevr_train_questions.pt'
+  val_question: 'clevr_val_questions.pt'
+  test_question: 'clevr_test_questions.pt'
+  vocab_json: 'clevr_vocab.json'
+  save_dir: 'results/'
+
+preprocess:
+  glove_pt: '/AvaStore/DataSets/visual_qa/datasets/glove/glove.840.300d.pkl'

@@ -1,0 +1,17 @@
+*.pth
+*.json
+*.h5
+*.tsv
+*.jpg
+*.zip
+*.pkl
+*.xml
+*.p
+*.svg
+*.model
+
+.idea/*
+exp_clevr/results/*
+exp_clevr_human/results/*
+exp_gpa/results/*
+__pycache__/
