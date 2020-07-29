@@ -148,28 +148,30 @@ if __name__ == '__main__':
             os.makedirs(output_dir)
         else:
             assert os.path.isdir(output_dir)
-        pred_file = os.path.join(output_dir, "val_preds.json")
+
         valid_acc, preds, gts, programs, ctrl_head_1, ctrl_head_2, visual_adjs, ling_vis_binding, boxes, ids, questions = validate(
             cfg, model, val_loader, device)
-        with open(pred_file, 'w') as output:
-            if cfg.val.is_vis:
-                instances = [
-                    {'img_id': img_id, 'question': ques, 'answer': answer,
-                     'prediction': pred, 'question_att_1': ques_att_1.tolist(),
-                     'question_att_2': ques_att_2.tolist(), 'program': program,
-                     'vis_adj': vis_adj, 'ling_vis_binding': grounding, 'boxes': box.tolist()} for
-                    img_id, ques, answer, pred, ques_att_1, ques_att_2, program, vis_adj, grounding, box in
-                    zip(np.hstack(ids).tolist(), questions, gts, preds, ctrl_head_1,
-                        ctrl_head_2,
-                        programs, visual_adjs, ling_vis_binding, boxes)]
-            else:
-                instances = [
-                    {'img_id': img_id, 'question': ques, 'answer': answer,
-                     'prediction': pred, 'program': program} for
-                    img_id, ques, answer, pred, label, program in
-                    zip(np.hstack(ids).tolist(), questions, gts, preds, programs)]
-            print("Writing all predictions to json file...")
-            json.dump(instances, output, cls=NumpyEncoder)
+        if cfg.val.write_preds:
+            pred_file = os.path.join(output_dir, "val_preds.json")
+            with open(pred_file, 'w') as output:
+                if cfg.val.is_vis:
+                    instances = [
+                        {'img_id': img_id, 'question': ques, 'answer': answer,
+                         'prediction': pred, 'question_att_1': ques_att_1.tolist(),
+                         'question_att_2': ques_att_2.tolist(), 'program': program,
+                         'vis_adj': vis_adj, 'ling_vis_binding': grounding, 'boxes': box.tolist()} for
+                        img_id, ques, answer, pred, ques_att_1, ques_att_2, program, vis_adj, grounding, box in
+                        zip(np.hstack(ids).tolist(), questions, gts, preds, ctrl_head_1,
+                            ctrl_head_2,
+                            programs, visual_adjs, ling_vis_binding, boxes)]
+                else:
+                    instances = [
+                        {'img_id': img_id, 'question': ques, 'answer': answer,
+                         'prediction': pred, 'program': program} for
+                        img_id, ques, answer, pred, label, program in
+                        zip(np.hstack(ids).tolist(), questions, gts, preds, programs)]
+                print("Writing all predictions to json file...")
+                json.dump(instances, output, cls=NumpyEncoder)
         sys.stdout.write('~~~~~~ Validation Accuracy: {valid_acc} ~~~~~~~\n'.format(
             valid_acc=colored("{:.4f}".format(valid_acc), "red", attrs=['bold'])))
         sys.stdout.flush()

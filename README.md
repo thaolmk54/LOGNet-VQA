@@ -36,7 +36,7 @@ Finally, save the output file `glove.840.300d.pkl` somewhere for later use.
 ## Experiments on CLEVR Dataset
 Experiments on CLEVR are done within `exp_clevr/`. Please edit absolute paths in the configuration file at `exp_clevr/configs/clevr.yml` before running the commands.
 #### Preprocessing visual features 
-You can download our pre-extracted features for CLEVR dataset [here](not available) and save them in `exp_clevr/data/`. 
+You can download our pre-extracted features for CLEVR dataset [here](https://deakin365-my.sharepoint.com/:f:/g/personal/lethao_deakin_edu_au/EgGRXbVvUhlAv7liZY-Q28YBYMRHPRoV2qHhcp1qwx3fvA?e=aLNHhq) and save them in `exp_clevr/data/`. 
 #### Preprocess linguistic features
 Extract PyTorch`.pt` files by running the following commands:
 ```
@@ -57,7 +57,7 @@ To evaluate the trained model, run the following:
 ```
 python validate.py --cfg configs/clevr.yml --mode val
 ```
-**Note**: A pretrained model on 10% of training data is available [here](not available). Save the file in `results/expClevr10%LOGNet/ckpt/` for evaluation.
+**Note**: A pretrained model on 10% of training data is available [here](https://deakin365-my.sharepoint.com/:f:/g/personal/lethao_deakin_edu_au/EgGRXbVvUhlAv7liZY-Q28YBYMRHPRoV2qHhcp1qwx3fvA?e=aLNHhq). Save the file in `results/expClevr10%LOGNet/ckpt/` for evaluation.
 ## Experiments on CLEVR-Human
 Experiments on CLEVR-Human are done within `exp_clevr_human/`. Please edit absolute paths in the configuration file at `exp_clevr_human/configs/clevr_human.yml` before running the commands. 
 
