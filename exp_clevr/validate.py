@@ -57,7 +57,7 @@ def validate(cfg, model, data, device):
             answers = answers.cuda().squeeze()
             logits, attns = model(*batch_input, vis=is_vis)
             acc = batch_accuracy(logits, answers)
-            if cfg.val.write_preds:
+            if cfg.val.write_preds or cfg.test.write_preds:
                 predicts = logits.argmax(1)
                 for predict in predicts:
                     results.append(data.vocab['answer_idx_to_token'][predict.item()])
@@ -197,7 +197,7 @@ if __name__ == '__main__':
             assert os.path.isdir(output_dir)
         pred_file = os.path.join(output_dir, "test_full_preds.json")
         _, preds, *output = validate(
-            args, model, test_loader, device)
+            cfg, model, test_loader, device)
 
         with open(pred_file, 'w') as output:
             instances = [

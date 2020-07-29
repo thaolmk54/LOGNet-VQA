@@ -9,8 +9,6 @@ import nltk
 
 from config import cfg, cfg_from_file
 
-_special_chars = re.compile('[^-\'a-zA-Z0-9 ]*')
-
 def encode(seq_tokens, token_to_idx, allow_unk=False):
     seq_idx = []
     for token in seq_tokens:
@@ -46,7 +44,6 @@ def process_questions(cfg, mode):
 
         for i, instance in enumerate(instances):
             question = instance['question'].lower()[:-1]
-            # question = _special_chars.sub('', question)
             for token in nltk.word_tokenize(question):
                 if token not in question_token_to_idx:
                     question_token_to_idx[token] = len(question_token_to_idx)
@@ -74,7 +71,6 @@ def process_questions(cfg, mode):
     all_answers = []
     for idx, instance in enumerate(instances):
         question = instance['question'].lower()[:-1]
-        # question = _special_chars.sub('', question)
         question_tokens = nltk.word_tokenize(question)
         question_encoded = encode(question_tokens, vocab['question_token_to_idx'], allow_unk=True)
         questions_encoded.append(question_encoded)

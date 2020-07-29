@@ -202,8 +202,6 @@ def main():
     if torch.cuda.is_available() and not cfg.multi_gpus:
         torch.cuda.set_device(cfg.gpu_id)
 
-    # torch.set_num_threads(16)
-    cudnn.benchmark = True
     # make logging.info display into both shell and file
     cfg.dataset.save_dir = os.path.join(cfg.dataset.save_dir, cfg.exp_name)
     if not os.path.exists(cfg.dataset.save_dir):
