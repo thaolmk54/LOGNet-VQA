@@ -14,5 +14,5 @@
 .idea/*
 exp_clevr/results/*
 exp_clevr_human/results/*
-exp_gpa/results/*
+exp_gqa/results/*
 __pycache__/
