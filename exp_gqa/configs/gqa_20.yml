@@ -8,7 +8,9 @@ train:
   lr: 0.0001
   batch_size: 64
   restore: False
-  epoch_decay_half: 10
+  epoch_decay_start: 10
+  lr_decay_step: 1
+  lr_decay_rate: 0.25
   max_epochs: 30
   word_dim: 300
   vision_dim: 2048
@@ -24,10 +26,10 @@ val:
   is_vis: False
   write_preds: False
   batch_size: 64
-  val_num: 1000
+  val_num: 0
 
 test:
-  test_num: 1000
+  test_num: 0
   write_preds: True
 
 dataset:
@@ -35,14 +37,18 @@ dataset:
   annotation_file: '/AvaStore/DataSets/visual_qa/datasets/gqa/annotations/{}_balanced_questions.json'
   img_info: 'gqa_objects_merged_info.json'
   data_dir: 'data/'
-  train_feature: 'gqa_objects.h5'
-  val_feature: 'gqa_objects.h5'
-  test_feature: 'gqa_objects.h5'
+  train_object_feature: 'gqa_objects.h5'
+  train_spatial_feature: 'gqa_spatial.h5'
+  val_object_feature: 'gqa_objects.h5'
+  val_spatial_feature: 'gqa_spatial.h5'
+  test_object_feature: 'gqa_objects.h5'
+  test_spatial_feature: 'gqa_spatial.h5'
   train_question: 'gqa_train_questions.pt'
   val_question: 'gqa_val_questions.pt'
   test_question: 'gqa_test_questions.pt'
   vocab_json: 'gqa_vocab.json'
   save_dir: 'results/'
+
 
 preprocess:
   glove_pt: '/AvaStore/DataSets/visual_qa/datasets/glove/glove.840.300d.pkl'

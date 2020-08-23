@@ -86,13 +86,14 @@ python validate.py --cfg configs/clevr_human.yml --mode val
 ## Experiments on GQA Dataset
 Experiments on GQA dataset are done within `exp_gqa/`. Please edit absolute paths in the configuration file at `exp_gqa/configs/gqa.yml` before running the commands.
 #### Preprocessing visual features 
-Download object features for GQA dataset [here](https://cs.stanford.edu/people/dorarad/gqa/download.html) and save them in `exp_gqa/data/`. We adapt the following [script](https://github.com/stanfordnlp/mac-network/tree/gqa) to merge h5 chunk files together:
+Download object features and spatial features for GQA dataset [here](https://cs.stanford.edu/people/dorarad/gqa/download.html) and save them in `exp_gqa/data/`. We adapt the following [script](https://github.com/stanfordnlp/mac-network/tree/gqa) to merge h5 chunk files together:
 
 ```
 python preprocess/merge.py --name objects
+python preprocess/merge.py --name spatial
 ```
 
-This should return two output files: `gqa_objects.h5` and `gqa_objects_merged_info.json`.
+This should return two output files for each feature type: `gqa_objects.h5`/`gqa_spatial.h5` and `gqa_objects_merged_info.json`/`gqa_spatial_merged_info.json`.
 
 #### Preprocess linguistic features
 Extract PyTorch`.pt` files by running the following commands:

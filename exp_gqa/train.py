@@ -28,7 +28,8 @@ def train(cfg):
     train_loader_kwargs = {
         'question_pt': cfg.dataset.train_question,
         'vocab_json': cfg.dataset.vocab_json,
-        'feature_h5': cfg.dataset.train_feature,
+        'object_feature': cfg.dataset.train_object_feature,
+        'spatial_feature': cfg.dataset.train_spatial_feature,
         'img_info': cfg.dataset.img_info,
         'train_num': cfg.train.train_num,
         'batch_size': cfg.train.batch_size,
@@ -40,7 +41,8 @@ def train(cfg):
     val_loader_kwargs = {
         'question_pt': cfg.dataset.val_question,
         'vocab_json': cfg.dataset.vocab_json,
-        'feature_h5': cfg.dataset.val_feature,
+        'object_feature': cfg.dataset.val_object_feature,
+        'spatial_feature': cfg.dataset.val_spatial_feature,
         'img_info': cfg.dataset.img_info,
         'val_num': cfg.val.val_num,
         'batch_size': cfg.train.batch_size,
@@ -91,6 +93,8 @@ def train(cfg):
     for epoch in range(start_epoch, cfg.train.max_epochs):
         logging.info('>>>>>> epoch {epoch} <<<<<<'.format(epoch=colored("{}".format(epoch), "green", attrs=["bold"])))
         model.train()
+        # set learning rate warmup -> refer https://github.com/KaihuaTang/VQA2.0-Recent-Approachs-2018.pytorch/blob/master/train.py
+        optimizer = lr_scheduling(cfg, epoch, optimizer)
         total_acc, count = 0, 0
         total_loss, avg_loss = 0.0, 0.0
         for i, batch in enumerate(train_loader):
@@ -123,9 +127,6 @@ def train(cfg):
                     avg_acc=colored("{:.4f}".format(avg_acc), "red", attrs=['bold']), exp_name=cfg.exp_name))
             sys.stdout.flush()
         sys.stdout.write("\n")
-        if (epoch + 1) % cfg.train.epoch_decay_half == 0:
-            optimizer = step_decay(cfg, optimizer)
-        prior_loss = avg_loss
         sys.stdout.flush()
         logging.info("Epoch = %s   avg_loss = %.3f    avg_acc = %.3f" % (epoch, avg_loss, avg_acc))
 
@@ -154,13 +155,25 @@ def train(cfg):
             sys.stdout.flush()
 
 
-def step_decay(cfg, optimizer):
-    # compute the new learning rate based on decay rate
-    cfg.train.lr *= 0.5
-    logging.info("Reduced learning rate to {}".format(cfg.train.lr))
-    sys.stdout.flush()
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = cfg.train.lr
+def lr_scheduling(cfg, epoch, optimizer):
+    if epoch < len(cfg.train.gradual_warmup_steps) and cfg.train.schedule_method == 'warm_up':
+        all_rl = []
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = cfg.train.gradual_warmup_steps[epoch]
+            all_rl.append(param_group['lr'])
+        print('Epoch {:03d}:'.format(epoch), ' Learning Rate: ', set(all_rl))
+    elif (epoch in range(cfg.train.epoch_decay_start, cfg.train.max_epochs, cfg.train.lr_decay_step)) and cfg.train.schedule_method \
+            == 'warm_up':
+        all_rl = []
+        for param_group in optimizer.param_groups:
+            param_group['lr'] *= cfg.train.lr_decay_rate
+            all_rl.append(param_group['lr'])
+        print('Epoch {:03d}:'.format(epoch), ' Learning Rate: ', set(all_rl))
+    else:
+        all_rl = []
+        for param_group in optimizer.param_groups:
+            all_rl.append(param_group['lr'])
+        print('Epoch {:03d}:'.format(epoch), ' Learning Rate: ', set(all_rl))
 
     return optimizer
 
@@ -216,8 +229,10 @@ def main():
     cfg.dataset.train_question = os.path.join(cfg.dataset.data_dir, cfg.dataset.train_question)
     cfg.dataset.val_question = os.path.join(cfg.dataset.data_dir, cfg.dataset.val_question)
     cfg.dataset.vocab_json = os.path.join(cfg.dataset.data_dir, cfg.dataset.vocab_json)
-    cfg.dataset.train_feature = os.path.join(cfg.dataset.data_dir, cfg.dataset.train_feature)
-    cfg.dataset.val_feature = os.path.join(cfg.dataset.data_dir, cfg.dataset.val_feature)
+    cfg.dataset.train_object_feature = os.path.join(cfg.dataset.data_dir, cfg.dataset.train_object_feature)
+    cfg.dataset.val_object_feature = os.path.join(cfg.dataset.data_dir, cfg.dataset.val_object_feature)
+    cfg.dataset.train_spatial_feature = os.path.join(cfg.dataset.data_dir, cfg.dataset.train_spatial_feature)
+    cfg.dataset.val_spatial_feature = os.path.join(cfg.dataset.data_dir, cfg.dataset.val_spatial_feature)
     cfg.dataset.img_info = os.path.join(cfg.dataset.data_dir, cfg.dataset.img_info)
 
     # set random seed

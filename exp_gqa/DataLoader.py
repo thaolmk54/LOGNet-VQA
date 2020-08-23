@@ -26,7 +26,7 @@ import math
 import h5py
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.dataloader import default_collate
-
+import random
 
 def invert_dict(d):
     return {v: k for k, v in d.items()}
@@ -42,7 +42,7 @@ def load_vocab(path):
 
 class GQADataset(Dataset):
 
-    def __init__(self, vocab, answers, questions, questions_len, q_image_indices, question_id, object_feature,
+    def __init__(self, vocab, answers, questions, questions_len, q_image_indices, question_id, object_feature, spatial_feature,
                  img_info, num_answer):
         # convert data to tensor
         self.all_answers = answers
@@ -51,6 +51,7 @@ class GQADataset(Dataset):
             np.asarray(questions_len)).long()
         self.all_q_image_idxs = np.asarray(q_image_indices)
         self.all_question_idxs = torch.from_numpy(np.asarray(question_id)).long()
+        self.spatial_feature = spatial_feature
         self.object_feature = object_feature
         self.img_info = img_info
         self.num_answer = num_answer
@@ -67,9 +68,18 @@ class GQADataset(Dataset):
         w = self.img_info[str(image_idx)]['width']
         h = self.img_info[str(image_idx)]['height']
         image_idx = torch.from_numpy(np.array([1]))
-        with h5py.File(self.object_feature, 'r') as f:
-            node_feat = f['features'][index] # (100, 2048)
-            boxes = f['bboxes'][index]  # (4, 100)
+        with h5py.File(self.object_feature, 'r') as fObject:
+            node_feat = fObject['features'][index] # (100, 2048)
+            boxes = fObject['bboxes'][index]  # (4, 100)
+
+        with h5py.File(self.spatial_feature, 'r') as fSpatial:
+            scene_feat = fSpatial['features'][index] # (2048, 7, 7)
+            scene_feat = scene_feat.mean(2).mean(1)
+            scene_feat = np.expand_dims(scene_feat, axis=0)
+            scene_box = np.array([0, 0, w, h])
+            scene_box = np.expand_dims(scene_box, axis=0)
+        node_feat = np.concatenate([scene_feat, node_feat], axis=0)  # (101, 2053)
+        boxes = np.concatenate([scene_box, boxes], axis=0)
 
         spatial_feat = [0] * boxes.shape[0]
         for i in range(boxes.shape[0]):
@@ -113,37 +123,40 @@ class GQADataLoader(DataLoader):
         if 'train_num' in kwargs:
             train_num = kwargs.pop('train_num')
             if train_num > 0:
-                questions = questions[:train_num]
-                questions_len = questions_len[:train_num]
-                q_image_indices = q_image_indices[:train_num]
-                question_id = question_id[:train_num]
-                answers = answers[:train_num]
+                choices = random.choices(range(len(questions)), k=train_num)
+                questions = questions[choices]
+                questions_len = questions_len[choices]
+                q_image_indices = q_image_indices[choices]
+                question_id = question_id[choices]
+                answers = answers[choices]
         if 'val_num' in kwargs:
             val_num = kwargs.pop('val_num')
             if val_num > 0:
-                questions = questions[:val_num]
-                questions_len = questions_len[:val_num]
-                q_image_indices = q_image_indices[:val_num]
-                question_id = question_id[:val_num]
-                answers = answers[:val_num]
+                choices = random.choices(range(len(questions)), k=val_num)
+                questions = questions[choices]
+                questions_len = questions_len[choices]
+                q_image_indices = q_image_indices[choices]
+                question_id = question_id[choices]
 
         if 'test_num' in kwargs:
             test_num = kwargs.pop('test_num')
             if test_num > 0:
-                questions = questions[:test_num]
-                questions_len = questions_len[:test_num]
-                q_image_indices = q_image_indices[:test_num]
-                question_id = question_id[:test_num]
-                answers = answers[:test_num]
+                choices = random.choices(range(len(questions)), k=test_num)
+                questions = questions[choices]
+                questions_len = questions_len[choices]
+                q_image_indices = q_image_indices[choices]
+                question_id = question_id[choices]
 
-        self.object_feature = kwargs.pop('feature_h5')
+        self.object_feature = kwargs.pop('object_feature')
         print('loading object feature from %s' % (self.object_feature))
+        self.spatial_feature = kwargs.pop('spatial_feature')
+        print('loading spatial feature from %s' % (self.spatial_feature))
         self.img_info = kwargs.pop('img_info')
         with open(self.img_info, "r") as file:
             self.img_info = json.load(file)
 
         self.dataset = GQADataset(vocab, answers, questions, questions_len, q_image_indices, question_id, self.object_feature,
-                                    self.img_info, len(vocab['answer_token_to_idx']))
+                                  self.spatial_feature, self.img_info, len(vocab['answer_token_to_idx']))
 
         self.vocab = vocab
         self.batch_size = kwargs['batch_size']
